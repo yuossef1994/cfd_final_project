@@ -7,7 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		2DC603E72A032130001971CF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DC603E62A032130001971CF /* main.cpp */; };
+		2DC603F22A032158001971CF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DC603EE2A032158001971CF /* main.cpp */; };
+		2DC603F32A032158001971CF /* nozzle_exact.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DC603F02A032158001971CF /* nozzle_exact.cpp */; };
+		2DC603F42A032158001971CF /* Dv_nozzle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 2DC603F12A032158001971CF /* Dv_nozzle.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +26,11 @@
 
 /* Begin PBXFileReference section */
 		2DC603E32A032130001971CF /* cfd_project_roe */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = cfd_project_roe; sourceTree = BUILT_PRODUCTS_DIR; };
-		2DC603E62A032130001971CF /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		2DC603ED2A032158001971CF /* Dv_nozzle.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Dv_nozzle.hpp; sourceTree = "<group>"; };
+		2DC603EE2A032158001971CF /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		2DC603EF2A032158001971CF /* nozzle_exact.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = nozzle_exact.hpp; sourceTree = "<group>"; };
+		2DC603F02A032158001971CF /* nozzle_exact.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = nozzle_exact.cpp; sourceTree = "<group>"; };
+		2DC603F12A032158001971CF /* Dv_nozzle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Dv_nozzle.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,7 +63,11 @@
 		2DC603E52A032130001971CF /* cfd_project_roe */ = {
 			isa = PBXGroup;
 			children = (
-				2DC603E62A032130001971CF /* main.cpp */,
+				2DC603F12A032158001971CF /* Dv_nozzle.cpp */,
+				2DC603ED2A032158001971CF /* Dv_nozzle.hpp */,
+				2DC603EE2A032158001971CF /* main.cpp */,
+				2DC603F02A032158001971CF /* nozzle_exact.cpp */,
+				2DC603EF2A032158001971CF /* nozzle_exact.hpp */,
 			);
 			path = cfd_project_roe;
 			sourceTree = "<group>";
@@ -119,7 +129,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				2DC603E72A032130001971CF /* main.cpp in Sources */,
+				2DC603F22A032158001971CF /* main.cpp in Sources */,
+				2DC603F42A032158001971CF /* Dv_nozzle.cpp in Sources */,
+				2DC603F32A032158001971CF /* nozzle_exact.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
