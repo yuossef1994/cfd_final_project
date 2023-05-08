@@ -189,7 +189,8 @@ void Dv_nozzle::set_geometry (int imax, double x_max, double x_min)
 
 void Dv_nozzle::set_boundary_cond()
 {
-    for (int j=2;j<=im_c-1;j++)
+   
+    for (int j=0;j<=im_c;j++)
         
     {
         //inflow boundary conditions
@@ -364,7 +365,12 @@ void Dv_nozzle::set_boundary_cond()
         ht_R=(gamma/(gamma-1))*(V_R[3]/V_R[0]) + V_R[1]*V_R[1]*0.5;
         
         roe_boundary_in_out(1,j);
-        
+        if((j>1)&&(j<im_f-1))
+        {
+            
+            roe_boundary_F_eta(1, j);
+            
+        }
         
         
         
@@ -402,11 +408,16 @@ void Dv_nozzle::set_boundary_cond()
         
         roe_boundary_in_out(0,j);
         
+        if((j>1)&&(j<im_f-1))
+        {
+            
+            roe_boundary_F_eta(0, j);
+            
+        }
         
         
         
-        
-    
+
         
         
         
@@ -584,7 +595,12 @@ void Dv_nozzle::set_boundary_cond()
             
             roe_boundary_in_out(im_f-1,j);
             
+        if((j>1)&&(j<im_f-1))
+        {
             
+            roe_boundary_F_eta(im_c-1, j);
+            
+        }
             
             
             
@@ -614,38 +630,26 @@ void Dv_nozzle::set_boundary_cond()
             
             roe_boundary_in_out(im_f,j);
             
-           
+        if((j>1)&&(j<im_f-1))
+        {
+            
+            roe_boundary_F_eta(im_c, j);
+            
+        }
         
     }
-    
-    
+
     
     
     roe_boundary_walls(0);
+   
     roe_boundary_walls(1);
+    
     roe_boundary_walls(im_f);
+    
     roe_boundary_walls(im_f-1);
     
-    roe_boundary_in_out_F_kasi(0,0);
-    roe_boundary_in_out_F_kasi(0,1);
-    roe_boundary_in_out_F_kasi(1,0);
-    roe_boundary_in_out_F_kasi(1,1);
     
-    roe_boundary_in_out_F_kasi(0,im_f);
-    roe_boundary_in_out_F_kasi(0,im_f-1);
-    roe_boundary_in_out_F_kasi(1,im_f);
-    roe_boundary_in_out_F_kasi(1,im_f-1);
-    
-    
-    roe_boundary_in_out_F_kasi(im_f,0);
-    roe_boundary_in_out_F_kasi(im_f,1);
-    roe_boundary_in_out_F_kasi(im_f-1,0);
-    roe_boundary_in_out_F_kasi(im_f-1,1);
-    
-    roe_boundary_in_out_F_kasi(im_f,im_f);
-    roe_boundary_in_out_F_kasi(im_f,im_f-1);
-    roe_boundary_in_out_F_kasi(im_f-1,im_f);
-    roe_boundary_in_out_F_kasi(im_f-1,im_f-1);
     
     
     
@@ -858,7 +862,7 @@ void Dv_nozzle::time_step()
              // for eta
              nx=n_x(y_n[i+1][j+1], y_n[i][j+1], a3);
              
-             nx= 0.5*(nx + n_x(y_n[i][j+1],y_n[i][j],a4));
+             nx= 0.5*(nx + n_x(y_n[i+1][j],y_n[i][j],a4));
              
              
              ny=n_y(x_n[i+1][j+1], x_n[i][j+1], a3);
@@ -1279,6 +1283,8 @@ for (int j=2;j<=im_c-1;j++){
 void Dv_nozzle::roe_boundary_in_out (int i,int j)
 
 {
+    
+    
     //flux in kasi direction
     R= sqrt(V_R[0]/V_L[0]);
     rho_roe=R*V_L[0];
@@ -1371,282 +1377,18 @@ void Dv_nozzle::roe_boundary_in_out (int i,int j)
      
      _F[3][i][j]=0.5*(_F_L[3][i][j]+_F_R[3][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[3] + abs(lambda[1])*delta_w[1]*r_2[3] + abs(lambda[2])*delta_w[2]*r_3[3]  + abs(lambda[3])*delta_w[3]*r_4[3]    );
     
-    
-                    //calculate epsi in eta direction
-                    //for density
-                    double denm= copysign(max(abs(_V[0][i][j]-_V[0][i][j-1]),1e-6),_V[0][i][j]-_V[0][i][j-1]);
-                    r_plus= (_V[0][i][j+1]-_V[0][i][j])/(denm);
-                    r_minus= (_V[0][i][j-1]-_V[0][i][j-2])/(denm);
-                    epsi_plus_y[0][i][j]= (r_plus+abs(r_plus))/(1+r_plus);
-                    epsi_minus_y[0][i][j]= (r_minus+abs(r_minus))/(1+r_minus);
-                    //for u velocity
-                    denm= copysign(max(abs(_V[1][i][j]-_V[1][i][j-1]),1e-6),_V[1][i][j]-_V[1][i][j-1]);
-                    r_plus= (_V[1][i][j+1]-_V[1][i][j])/(denm);
-                    r_minus= (_V[1][i][j-1]-_V[1][i][j-2])/(denm);
-                    epsi_plus_y[1][i][j]= (r_plus+abs(r_plus))/(1+r_plus);
-                    epsi_minus_y[1][i][j]= (r_minus+abs(r_minus))/(1+r_minus);
-                    
-                    //for v velocity
-                    denm= copysign(max(abs(_V[2][i][j]-_V[2][i][j-1]),1e-6),_V[2][i][j]-_V[2][i][j-1]);
-                    r_plus= (_V[2][i][j+1]-_V[2][i][j])/(denm);
-                    r_minus= (_V[2][i][j-1]-_V[2][i][j-2])/(denm);
-                    epsi_plus_y[2][i][j]= (r_plus+abs(r_plus))/(1+r_plus);
-                    epsi_minus_y[2][i][j]= (r_minus+abs(r_minus))/(1+r_minus);
-                    //for pressure
-                    denm= copysign(max(abs(_V[3][i][j]-_V[3][i][j-1]),1e-6),_V[3][i][j]-_V[3][i][j-1]);
-                    r_plus= (_V[3][i][j+1]-_V[3][i][j])/(denm);
-                    r_minus= (_V[3][i][j-1]-_V[3][i][j-2])/(denm);
-                    epsi_plus_y[3][i][j]= (r_plus+abs(r_plus))/(1+r_plus);
-                    epsi_minus_y[3][i][j]= (r_minus+abs(r_minus))/(1+r_minus);
-    // flux for eta faces
-         
    
-        //density
-        V_D[0]= _V[0][i][j-1]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_y[0][i][j-1]*(_V[0][i][j-1]-_V[0][i][j-2]) + (1+kappa)*epsi_minus_y[0][i][j]*(_V[0][i][j]-_V[0][i][j-1])        );
-        
-        V_U[0]= _V[0][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_y[0][i][j+1]*(_V[0][i][j+1]-_V[0][i][j]) + (1+kappa)*epsi_plus_y[0][i][j]*(_V[0][i][j]-_V[0][i][j-1])        );
-        //x-velocity
-        V_D[1]= _V[1][i][j-1]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_y[1][i][j-1]*(_V[1][i][j-1]-_V[1][i][j-2]) + (1+kappa)*epsi_minus_y[1][i][j]*(_V[1][i][j]-_V[1][i][j-1])        );
-        
-        V_U[1]= _V[1][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_y[1][i][j+1]*(_V[1][i][j+1]-_V[1][i][j]) + (1+kappa)*epsi_plus_y[1][i][j]*(_V[1][i][j]-_V[1][i][j-1])        );
-        //y-velocity
-        V_D[2]= _V[2][i][j-1]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_y[2][i][j-1]*(_V[2][i][j-1]-_V[2][i][j-2]) + (1+kappa)*epsi_minus_y[2][i][j]*(_V[2][i][j]-_V[2][i][j-1])        );
-        
-        V_U[2]= _V[2][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_y[2][i][j+1]*(_V[2][i][j+1]-_V[2][i][j]) + (1+kappa)*epsi_plus_y[2][i][j]*(_V[2][i][j]-_V[2][i][j-1])        );
-        //pressure
-        V_D[3]= _V[3][i][j-1]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_y[3][i][j-1]*(_V[3][i][j-1]-_V[3][i][j-2]) + (1+kappa)*epsi_minus_y[3][i][j]*(_V[3][i][j]-_V[3][i][j-1])        );
-        
-        V_U[3]= _V[3][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_y[3][i][j+1]*(_V[3][i][j+1]-_V[3][i][j]) + (1+kappa)*epsi_plus_y[3][i][j]*(_V[3][i][j]-_V[3][i][j-1])        );
-        //total enthalpy
-        ht_D=(gamma/(gamma-1))*(V_D[3]/V_D[0]) + ((V_D[1]*V_D[1])+(V_D[2]*V_D[2]))*0.5;
-        ht_U=(gamma/(gamma-1))*(V_U[3]/V_U[0]) + ((V_U[1]*V_U[1])+(V_U[2]*V_U[2]))*0.5;
-        
-        
-        
-        R= sqrt(V_U[0]/V_D[0]);
-        rho_roe=R*V_D[0];
-        u_roe=(R*V_U[1]+V_D[1])/(R+1);
-        v_roe=(R*V_U[2]+V_D[2])/(R+1);
-        ht_roe= (R*ht_U+ht_D)/(R+1);
-        a_roe=sqrt(abs((gamma-1)*(ht_roe-0.5*(u_roe*u_roe+v_roe*v_roe))));
-        
-        double a4=face_area(x_n[i+1][j], x_n[i][j],y_n[i+1][j], y_n[i][j]);
-        
-        
-        nx=n_x(y_n[i+1][j], y_n[i][j], a4);
-        ny=n_y(x_n[i+1][j], x_n[i][j], a4);
-        
-        T_vel_roe=nx*u_roe+ny*v_roe;
-        
-        
-        r_1[0]=1;
-        r_1[1]=u_roe;
-        r_1[2]=v_roe;
-        r_1[3]=0.5*(u_roe*u_roe+v_roe*v_roe);
-        
-        
-        
-        r_2[0]=0;
-        r_2[1]=ny*rho_roe;
-        r_2[2]=-nx*rho_roe;
-        r_2[3]=rho_roe*(ny*u_roe-nx*v_roe);
-        
-        
-        
-        
-        
-        r_3[0]=rho_roe/(2*a_roe);
-        r_3[1]=r_3[0]*(u_roe+nx*a_roe);
-        r_3[2]=r_3[0]*(v_roe+ny*a_roe);
-        r_3[3]=r_3[0]*(ht_roe+T_vel_roe*a_roe);
-        
-        
-        r_4[0]=-rho_roe/(2*a_roe);
-        r_4[1]=r_4[0]*(u_roe-nx*a_roe);
-        r_4[2]=r_4[0]*(v_roe-ny*a_roe);
-        r_4[3]=r_4[0]*(ht_roe-T_vel_roe*a_roe);
-        
-        lambda[0]=T_vel_roe;
-        lambda[1]=T_vel_roe;
-        lambda[2]=T_vel_roe+a_roe;
-        lambda[3]=T_vel_roe-a_roe;
-        
-        
-        if(abs(lambda[0])<0.1*2*a_roe)lambda[0]=(lambda[0]*lambda[0])/(0.1*4*a_roe)+0.1*a_roe;
-        if(abs(lambda[1])<0.1*2*a_roe)lambda[1]=(lambda[1]*lambda[1])/(0.1*4*a_roe)+0.1*a_roe;
-        if(abs(lambda[2])<0.1*2*a_roe)lambda[2]=(lambda[2]*lambda[2])/(0.1*4*a_roe)+0.1*a_roe;
-        if(abs(lambda[3])<0.1*2*a_roe)lambda[3]=(lambda[3]*lambda[3])/(0.1*4*a_roe)+0.1*a_roe;
-        
-        delta_rho=V_U[0]-V_D[0];
-        delta_u=V_U[1]-V_D[1];
-        delta_v=V_U[2]-V_D[2];
-        delta_P=V_U[3]-V_D[3];
-        
-        
-        delta_w[0]= delta_rho-delta_P/(a_roe*a_roe);
-        delta_w[1]=ny*delta_u-nx*delta_v;
-        delta_w[2]=nx*delta_u+ny*delta_v+(delta_P)/(rho_roe*a_roe);
-        delta_w[3]=nx*delta_u+ny*delta_v-(delta_P)/(rho_roe*a_roe);
-        
-        T_vel_D=V_D[1]*nx+V_D[2]*ny;
-        T_vel_R=V_U[1]*nx+V_U[2]*ny;
-        
-        _F_D[0][i][j] =V_D[0]* T_vel_D ;
-        _F_D[1][i][j]= V_D[0]*V_D[1]*T_vel_D + V_D[3]*nx;
-        _F_D[2][i][j]= V_D[0]*V_D[2]*T_vel_D + V_D[3]*ny;
-        _F_D[3][i][j]= V_D[0]*ht_D*T_vel_D;
-        
-        
-        _F_U[0][i][j] =V_U[0]*T_vel_U ;
-        _F_U[1][i][j]= V_U[0]*V_U[1]*T_vel_U + V_U[3]*nx;
-        _F_U[2][i][j]= V_U[0]*V_U[2]*T_vel_U + V_U[3]*ny;
-        _F_U[3][i][j]= V_U[0]*ht_U*T_vel_U;
-        
-        
-        
-        _F_eta[0][i][j]=0.5*(_F_D[0][i][j]+_F_U[0][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[0] + abs(lambda[1])*delta_w[1]*r_2[0] + abs(lambda[2])*delta_w[2]*r_3[0] + abs(lambda[3])*delta_w[3]*r_4[0]     );
-        
-        
-        
-        _F_eta[1][i][j]=0.5*(_F_D[1][i][j]+_F_U[1][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[1] + abs(lambda[1])*delta_w[1]*r_2[1] + abs(lambda[2])*delta_w[2]*r_3[1] + abs(lambda[3])*delta_w[3]*r_4[1]     );
-        
-        
-        
-        _F_eta[2][i][j]=0.5*(_F_D[2][i][j]+_F_U[2][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[2] + abs(lambda[1])*delta_w[1]*r_2[2] + abs(lambda[2])*delta_w[2]*r_3[2] + abs(lambda[3])*delta_w[3]*r_4[2]     );
-        
-        _F_eta[3][i][j]=0.5*(_F_D[3][i][j]+_F_U[3][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[3] + abs(lambda[1])*delta_w[1]*r_2[3] + abs(lambda[2])*delta_w[2]*r_3[3]  + abs(lambda[3])*delta_w[3]*r_4[3]    );
-        
-  
     
 }
                         
 void Dv_nozzle::roe_boundary_walls(int j)
 {
                 
-    for (int i=0;i<=im_c+1;i++)
+    for (int i=0;i<=im_c;i++)
                 
   {
       
-     if( i==2 && i<=(im_c-2))
-     {
-         
-         
-         //density
-         V_L[0]= _V[0][i-1][j]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_x[0][i-1][j]*(_V[0][i-1][j]-_V[0][i-2][j]) + (1+kappa)*epsi_minus_x[0][i][j]*(_V[0][i][j]-_V[0][i-1][j])        );
-         
-         V_R[0]= _V[0][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_x[0][i+1][j]*(_V[0][i+1][j]-_V[0][i][j]) + (1+kappa)*epsi_plus_x[0][i][j]*(_V[0][i][j]-_V[0][i-1][j])        );
-         //x-velocity
-         V_L[1]= _V[1][i-1][j]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_x[1][i-1][j]*(_V[1][i-1][j]-_V[1][i-2][j]) + (1+kappa)*epsi_minus_x[1][i][j]*(_V[1][i][j]-_V[1][i-1][j])        );
-         
-         V_R[1]= _V[1][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_x[1][i+1][j]*(_V[1][i+1][j]-_V[1][i][j]) + (1+kappa)*epsi_plus_x[1][i][j]*(_V[1][i][j]-_V[1][i-1][j])        );
-         //y-velocity
-         V_L[2]= _V[2][i-1][j]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_x[2][i-1][j]*(_V[2][i-1][j]-_V[2][i-2][j]) + (1+kappa)*epsi_minus_x[2][i][j]*(_V[2][i][j]-_V[2][i-1][j])        );
-         
-         V_R[2]= _V[2][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_x[2][i+1][j]*(_V[2][i+1][j]-_V[2][i][j]) + (1+kappa)*epsi_plus_x[2][i][j]*(_V[2][i][j]-_V[2][i-1][j])        );
-         //pressure
-         V_L[3]= _V[3][i-1][j]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_x[3][i-1][j]*(_V[3][i-1][j]-_V[3][i-2][j]) + (1+kappa)*epsi_minus_x[3][i][j]*(_V[3][i][j]-_V[3][i-1][j])        );
-         
-         V_R[3]= _V[3][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_x[3][i+1][j]*(_V[3][i+1][j]-_V[3][i][j]) + (1+kappa)*epsi_plus_x[3][i][j]*(_V[3][i][j]-_V[3][i-1][j])        );
-         //total enthalpy
-         ht_L=(gamma/(gamma-1))*(V_L[2]/V_L[0]) + ((V_L[1]*V_L[1])+(V_L[2]*V_L[2]))*0.5;
-         ht_R=(gamma/(gamma-1))*(V_R[2]/V_R[0]) + ((V_R[1]*V_R[1])+(V_R[2]*V_R[2]))*0.5;
-         
-         R= sqrt(V_R[0]/V_L[0]);
-         rho_roe=R*V_L[0];
-         u_roe=(R*V_R[1]+V_L[1])/(R+1);
-         v_roe=(R*V_R[2]+V_L[2])/(R+1);
-         ht_roe= (R*ht_R+ht_L)/(R+1);
-         a_roe=sqrt(abs((gamma-1)*(ht_roe-0.5*(u_roe*u_roe+v_roe*v_roe))));
-         
-         double a2=face_area(x_n[i][j+1], x_n[i][j],y_n[i][j+1], y_n[i][j]);
-         nx=n_x(y_n[i][j+1], y_n[i][j], a2);
-         ny=n_y(x_n[i][j+1], x_n[i][j], a2);
-         T_vel_roe=nx*u_roe+ny*v_roe;
-         
-         
-         r_1[0]=1;
-         r_1[1]=u_roe;
-         r_1[2]=v_roe;
-         r_1[3]=0.5*(u_roe*u_roe+v_roe*v_roe);
-         
-         
-         
-         r_2[0]=0;
-         r_2[1]=ny*rho_roe;
-         r_2[2]=-nx*rho_roe;
-         r_2[3]=rho_roe*(ny*u_roe-nx*v_roe);
-         
-         
-         
-         
-         
-         r_3[0]=rho_roe/(2*a_roe);
-         r_3[1]=r_3[0]*(u_roe+nx*a_roe);
-         r_3[2]=r_3[0]*(v_roe+ny*a_roe);
-         r_3[3]=r_3[0]*(ht_roe+T_vel_roe*a_roe);
-         
-         
-         r_4[0]=-rho_roe/(2*a_roe);
-         r_4[1]=r_4[0]*(u_roe-nx*a_roe);
-         r_4[2]=r_4[0]*(v_roe-ny*a_roe);
-         r_4[3]=r_4[0]*(ht_roe-T_vel_roe*a_roe);
-         
-         lambda[0]=T_vel_roe;
-         lambda[1]=T_vel_roe;
-         lambda[2]=T_vel_roe+a_roe;
-         lambda[3]=T_vel_roe-a_roe;
-         
-         
-         if(abs(lambda[0])<0.1*2*a_roe)lambda[0]=(lambda[0]*lambda[0])/(0.1*4*a_roe)+0.1*a_roe;
-         if(abs(lambda[1])<0.1*2*a_roe)lambda[1]=(lambda[1]*lambda[1])/(0.1*4*a_roe)+0.1*a_roe;
-         if(abs(lambda[2])<0.1*2*a_roe)lambda[2]=(lambda[2]*lambda[2])/(0.1*4*a_roe)+0.1*a_roe;
-         if(abs(lambda[3])<0.1*2*a_roe)lambda[3]=(lambda[3]*lambda[3])/(0.1*4*a_roe)+0.1*a_roe;
-         
-         delta_rho=V_R[0]-V_L[0];
-         delta_u=V_R[1]-V_L[1];
-         delta_v=V_R[2]-V_L[2];
-         delta_P=V_R[3]-V_L[3];
-         
-         
-         delta_w[0]= delta_rho-delta_P/(a_roe*a_roe);
-         delta_w[1]=ny*delta_u-nx*delta_v;
-         delta_w[2]=nx*delta_u+ny*delta_v+(delta_P)/(rho_roe*a_roe);
-         delta_w[3]=nx*delta_u+ny*delta_v-(delta_P)/(rho_roe*a_roe);
-         
-         T_vel_L=V_L[1]*nx+V_L[2]*ny;
-         T_vel_R=V_R[1]*nx+V_R[2]*ny;
-         
-         _F_L[0][i][j] =V_L[0]* T_vel_L ;
-         _F_L[1][i][j]= V_L[0]*V_L[1]*T_vel_L + V_L[3]*nx;
-         _F_L[2][i][j]= V_L[0]*V_L[2]*T_vel_L + V_L[3]*ny;
-         _F_L[3][i][j]= V_L[0]*ht_L*T_vel_L;
-         
-         
-         _F_R[0][i][j] =V_R[0]* T_vel_R ;
-         _F_R[1][i][j]= V_R[0]*V_R[1]*T_vel_R + V_R[3]*nx;
-         _F_R[2][i][j]= V_R[0]*V_R[2]*T_vel_R + V_R[3]*ny;
-         _F_R[3][i][j]= V_R[0]*ht_R*T_vel_R;
-         
-         
-         
-         
-         //flux for kasi faces
-         
-         
-         _F[0][i][j]=0.5*(_F_L[0][i][j]+_F_R[0][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[0] + abs(lambda[1])*delta_w[1]*r_2[0] + abs(lambda[2])*delta_w[2]*r_3[0] + abs(lambda[3])*delta_w[3]*r_4[0]     );
-         
-         
-         
-         _F[1][i][j]=0.5*(_F_L[1][i][j]+_F_R[1][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[1] + abs(lambda[1])*delta_w[1]*r_2[1] + abs(lambda[2])*delta_w[2]*r_3[1] + abs(lambda[3])*delta_w[3]*r_4[1]     );
-         
-         
-         
-         _F[2][i][j]=0.5*(_F_L[2][i][j]+_F_R[2][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[2] + abs(lambda[1])*delta_w[1]*r_2[2] + abs(lambda[2])*delta_w[2]*r_3[2] + abs(lambda[3])*delta_w[3]*r_4[2]     );
-         
-         _F[3][i][j]=0.5*(_F_L[3][i][j]+_F_R[3][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[3] + abs(lambda[1])*delta_w[1]*r_2[3] + abs(lambda[2])*delta_w[2]*r_3[3]  + abs(lambda[3])*delta_w[3]*r_4[3]    );
-         
-         
-     }
+    
       
       double P_wall=0;
       
@@ -1654,14 +1396,14 @@ void Dv_nozzle::roe_boundary_walls(int j)
       if(j==0)
       {
           
-          if (j==0) P_wall =_V[3][i][0] - 0.5*(_V[3][i][1]-_V[3][i][0]);
+          P_wall =_V[3][i][0] - 0.5*(_V[3][i][1]-_V[3][i][0]);
           
         
           
           
           double a4=face_area(x_n[i+1][j], x_n[i][j],y_n[i+1][j], y_n[i][j]);
-          nx= 0.5*(nx + n_x(y_n[i+1][j], y_n[i][j], a4));
-          ny= 0.5*(ny + n_y(x_n[i+1][j], x_n[i][j], a4));
+          nx= n_x(y_n[i+1][j], y_n[i][j], a4);
+          ny= n_y(x_n[i+1][j], x_n[i][j], a4);
           
           _F_eta[0][i][j]=0;
           
@@ -1670,10 +1412,15 @@ void Dv_nozzle::roe_boundary_walls(int j)
           _F_eta[2][i][j]=ny*P_wall;
           
           _F_eta[3][i][j]=0;
-      }
-      if((j==im_f-1)||(j==1))
           
-      {
+          if((i>1)&&(i<im_f-1))
+          {
+              
+              roe_boundary_F_kasi(i, 0);
+              
+          }
+      }
+      
          
           if (j==1){
               
@@ -1683,38 +1430,64 @@ void Dv_nozzle::roe_boundary_walls(int j)
               _F_eta[1][i][1]= 0.5*(_F_eta[1][i][0]+_F_eta[1][i][2]);
               _F_eta[2][i][1]= 0.5*(_F_eta[2][i][0]+_F_eta[2][i][2]);
               _F_eta[3][i][1]= 0.5*(_F_eta[3][i][0]+_F_eta[3][i][2]);
-              
+              if((i>1)&&(i<im_f-1))
+              {
+                  
+                  roe_boundary_F_kasi(i, 1);
+                  
+              }
               
           }
-          if (j==im_f-1){
+          if(j==im_f)
+          
+          {
+              
               
               P_wall =_V[3][i][im_c] - 0.5*(_V[3][i][im_c-1]-_V[3][i][im_c]);
               
               
               double a4=face_area(x_n[i+1][im_f], x_n[i][im_f],y_n[i+1][im_f], y_n[i][im_f]);
-              nx= 0.5*(nx + n_x(y_n[i+1][im_f], y_n[i][im_f], a4));
-              ny= 0.5*(ny + n_y(x_n[i+1][im_f], x_n[i][im_f], a4));
+              nx= n_x(y_n[i+1][im_f], y_n[i][im_f], a4);
+              ny= n_y(x_n[i+1][im_f], x_n[i][im_f], a4);
               
-              _F_eta[0][i][j]=0;
+              _F_eta[0][i][im_f]=0;
               
-              _F_eta[1][i][j]=nx*P_wall;
+              _F_eta[1][i][im_f]=nx*P_wall;
               
-              _F_eta[2][i][j]=ny*P_wall;
+              _F_eta[2][i][im_f]=ny*P_wall;
               
-              _F_eta[3][i][j]=0;
+              _F_eta[3][i][im_f]=0;
+              
+              if((i>1)&&(i<im_f-1))
+              {
+                  
+                  roe_boundary_F_kasi(i, im_c);
+                  
+              }
+          }
+          if (j==im_f-1)
+          {
+              
+              
               
               
               _F_eta[0][i][im_f-1]= 0.5*(_F_eta[0][i][im_f]+_F_eta[0][i][im_f-2]);
               _F_eta[1][i][im_f-1]= 0.5*(_F_eta[1][i][im_f]+_F_eta[1][i][im_f-2]);
               _F_eta[2][i][im_f-1]= 0.5*(_F_eta[2][i][im_f]+_F_eta[2][i][im_f-2]);
               _F_eta[3][i][im_f-1]= 0.5*(_F_eta[3][i][im_f]+_F_eta[3][i][im_f-2]);
+              if((i>1)&&(i<im_f-1))
+              {
+                  
+                  roe_boundary_F_kasi(i, im_c-1);
+                  
+              }
               
           }
           
       
           
           
-      }
+     
           
           
           
@@ -1786,10 +1559,29 @@ double Dv_nozzle:: cell_vol(double area_1,double area_2)
     return vol;
     
 }
-void Dv_nozzle::roe_boundary_in_out_F_kasi (int i,int j)
+void Dv_nozzle::roe_boundary_F_kasi (int i,int j)
 
 {
     
+    //density
+    V_L[0]= _V[0][i-1][j]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_x[0][i-1][j]*(_V[0][i-1][j]-_V[0][i-2][j]) + (1+kappa)*epsi_minus_x[0][i][j]*(_V[0][i][j]-_V[0][i-1][j])        );
+    
+    V_R[0]= _V[0][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_x[0][i+1][j]*(_V[0][i+1][j]-_V[0][i][j]) + (1+kappa)*epsi_plus_x[0][i][j]*(_V[0][i][j]-_V[0][i-1][j])        );
+    //x-velocity
+    V_L[1]= _V[1][i-1][j]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_x[1][i-1][j]*(_V[1][i-1][j]-_V[1][i-2][j]) + (1+kappa)*epsi_minus_x[1][i][j]*(_V[1][i][j]-_V[1][i-1][j])        );
+    
+    V_R[1]= _V[1][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_x[1][i+1][j]*(_V[1][i+1][j]-_V[1][i][j]) + (1+kappa)*epsi_plus_x[1][i][j]*(_V[1][i][j]-_V[1][i-1][j])        );
+    //y-velocity
+    V_L[2]= _V[2][i-1][j]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_x[2][i-1][j]*(_V[2][i-1][j]-_V[2][i-2][j]) + (1+kappa)*epsi_minus_x[2][i][j]*(_V[2][i][j]-_V[2][i-1][j])        );
+    
+    V_R[2]= _V[2][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_x[2][i+1][j]*(_V[2][i+1][j]-_V[2][i][j]) + (1+kappa)*epsi_plus_x[2][i][j]*(_V[2][i][j]-_V[2][i-1][j])        );
+    //pressure
+    V_L[3]= _V[3][i-1][j]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_x[3][i-1][j]*(_V[3][i-1][j]-_V[3][i-2][j]) + (1+kappa)*epsi_minus_x[3][i][j]*(_V[3][i][j]-_V[3][i-1][j])        );
+    
+    V_R[3]= _V[3][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_x[3][i+1][j]*(_V[3][i+1][j]-_V[3][i][j]) + (1+kappa)*epsi_plus_x[3][i][j]*(_V[3][i][j]-_V[3][i-1][j])        );
+    //total enthalpy
+    ht_L=(gamma/(gamma-1))*(V_L[2]/V_L[0]) + ((V_L[1]*V_L[1])+(V_L[2]*V_L[2]))*0.5;
+    ht_R=(gamma/(gamma-1))*(V_R[2]/V_R[0]) + ((V_R[1]*V_R[1])+(V_R[2]*V_R[2]))*0.5;
     
     
     //flux in kasi direction
@@ -1884,6 +1676,136 @@ void Dv_nozzle::roe_boundary_in_out_F_kasi (int i,int j)
     
     _F[3][i][j]=0.5*(_F_L[3][i][j]+_F_R[3][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[3] + abs(lambda[1])*delta_w[1]*r_2[3] + abs(lambda[2])*delta_w[2]*r_3[3]  + abs(lambda[3])*delta_w[3]*r_4[3]    );
     
+    
+    
+}
+
+void Dv_nozzle::roe_boundary_F_eta (int i,int j)
+{
+    
+    
+    
+    // flux for eta faces
+         
+         
+         //density
+         V_D[0]= _V[0][i][j-1]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_y[0][i][j-1]*(_V[0][i][j-1]-_V[0][i][j-2]) + (1+kappa)*epsi_minus_y[0][i][j]*(_V[0][i][j]-_V[0][i][j-1])        );
+         
+         V_U[0]= _V[0][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_y[0][i][j+1]*(_V[0][i][j+1]-_V[0][i][j]) + (1+kappa)*epsi_plus_y[0][i][j]*(_V[0][i][j]-_V[0][i][j-1])        );
+         //x-velocity
+         V_D[1]= _V[1][i][j-1]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_y[1][i][j-1]*(_V[1][i][j-1]-_V[1][i][j-2]) + (1+kappa)*epsi_minus_y[1][i][j]*(_V[1][i][j]-_V[1][i][j-1])        );
+         
+         V_U[1]= _V[1][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_y[1][i][j+1]*(_V[1][i][j+1]-_V[1][i][j]) + (1+kappa)*epsi_plus_y[1][i][j]*(_V[1][i][j]-_V[1][i][j-1])        );
+         //y-velocity
+         V_D[2]= _V[2][i][j-1]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_y[2][i][j-1]*(_V[2][i][j-1]-_V[2][i][j-2]) + (1+kappa)*epsi_minus_y[2][i][j]*(_V[2][i][j]-_V[2][i][j-1])        );
+         
+         V_U[2]= _V[2][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_y[2][i][j+1]*(_V[2][i][j+1]-_V[2][i][j]) + (1+kappa)*epsi_plus_y[2][i][j]*(_V[2][i][j]-_V[2][i][j-1])        );
+         //pressure
+         V_D[3]= _V[3][i][j-1]+(epsilon_upwind/4)*((1-kappa)*epsi_plus_y[3][i][j-1]*(_V[3][i][j-1]-_V[3][i][j-2]) + (1+kappa)*epsi_minus_y[3][i][j]*(_V[3][i][j]-_V[3][i][j-1])        );
+         
+         V_U[3]= _V[3][i][j]-(epsilon_upwind/4)*((1-kappa)*epsi_minus_y[3][i][j+1]*(_V[3][i][j+1]-_V[3][i][j]) + (1+kappa)*epsi_plus_y[3][i][j]*(_V[3][i][j]-_V[3][i][j-1])        );
+         //total enthalpy
+         ht_D=(gamma/(gamma-1))*(V_D[3]/V_D[0]) + ((V_D[1]*V_D[1])+(V_D[2]*V_D[2]))*0.5;
+         ht_U=(gamma/(gamma-1))*(V_U[3]/V_U[0]) + ((V_U[1]*V_U[1])+(V_U[2]*V_U[2]))*0.5;
+         
+         
+         
+         R= sqrt(V_U[0]/V_D[0]);
+         rho_roe=R*V_D[0];
+         u_roe=(R*V_U[1]+V_D[1])/(R+1);
+         v_roe=(R*V_U[2]+V_D[2])/(R+1);
+         ht_roe= (R*ht_U+ht_D)/(R+1);
+         a_roe=sqrt(abs((gamma-1)*(ht_roe-0.5*(u_roe*u_roe+v_roe*v_roe))));
+         
+         double a4=face_area(x_n[i+1][j], x_n[i][j],y_n[i+1][j], y_n[i][j]);
+         
+         
+         nx=n_x(y_n[i+1][j], y_n[i][j], a4);
+         ny=n_y(x_n[i+1][j], x_n[i][j], a4);
+         
+         T_vel_roe=nx*u_roe+ny*v_roe;
+         
+         
+         r_1[0]=1;
+         r_1[1]=u_roe;
+         r_1[2]=v_roe;
+         r_1[3]=0.5*(u_roe*u_roe+v_roe*v_roe);
+         
+         
+         
+         r_2[0]=0;
+         r_2[1]=ny*rho_roe;
+         r_2[2]=-nx*rho_roe;
+         r_2[3]=rho_roe*(ny*u_roe-nx*v_roe);
+         
+         
+         
+         
+         
+         r_3[0]=rho_roe/(2*a_roe);
+         r_3[1]=r_3[0]*(u_roe+nx*a_roe);
+         r_3[2]=r_3[0]*(v_roe+ny*a_roe);
+         r_3[3]=r_3[0]*(ht_roe+T_vel_roe*a_roe);
+         
+         
+         r_4[0]=-rho_roe/(2*a_roe);
+         r_4[1]=r_4[0]*(u_roe-nx*a_roe);
+         r_4[2]=r_4[0]*(v_roe-ny*a_roe);
+         r_4[3]=r_4[0]*(ht_roe-T_vel_roe*a_roe);
+         
+         lambda[0]=T_vel_roe;
+         lambda[1]=T_vel_roe;
+         lambda[2]=T_vel_roe+a_roe;
+         lambda[3]=T_vel_roe-a_roe;
+         
+         
+         if(abs(lambda[0])<0.1*2*a_roe)lambda[0]=(lambda[0]*lambda[0])/(0.1*4*a_roe)+0.1*a_roe;
+         if(abs(lambda[1])<0.1*2*a_roe)lambda[1]=(lambda[1]*lambda[1])/(0.1*4*a_roe)+0.1*a_roe;
+         if(abs(lambda[2])<0.1*2*a_roe)lambda[2]=(lambda[2]*lambda[2])/(0.1*4*a_roe)+0.1*a_roe;
+         if(abs(lambda[3])<0.1*2*a_roe)lambda[3]=(lambda[3]*lambda[3])/(0.1*4*a_roe)+0.1*a_roe;
+  
+         delta_rho=V_U[0]-V_D[0];
+         delta_u=V_U[1]-V_D[1];
+         delta_v=V_U[2]-V_D[2];
+         delta_P=V_U[3]-V_D[3];
+         
+         
+         delta_w[0]= delta_rho-delta_P/(a_roe*a_roe);
+         delta_w[1]=ny*delta_u-nx*delta_v;
+         delta_w[2]=nx*delta_u+ny*delta_v+(delta_P)/(rho_roe*a_roe);
+         delta_w[3]=nx*delta_u+ny*delta_v-(delta_P)/(rho_roe*a_roe);
+         
+         T_vel_D=V_D[1]*nx+V_D[2]*ny;
+         T_vel_R=V_U[1]*nx+V_U[2]*ny;
+         
+         _F_D[0][i][j] =V_D[0]* T_vel_D ;
+         _F_D[1][i][j]= V_D[0]*V_D[1]*T_vel_D + V_D[3]*nx;
+         _F_D[2][i][j]= V_D[0]*V_D[2]*T_vel_D + V_D[3]*ny;
+         _F_D[3][i][j]= V_D[0]*ht_D*T_vel_D;
+         
+         
+         _F_U[0][i][j] =V_U[0]*T_vel_U ;
+         _F_U[1][i][j]= V_U[0]*V_U[1]*T_vel_U + V_U[3]*nx;
+         _F_U[2][i][j]= V_U[0]*V_U[2]*T_vel_U + V_U[3]*ny;
+         _F_U[3][i][j]= V_U[0]*ht_U*T_vel_U;
+         
+     
+         
+         _F_eta[0][i][j]=0.5*(_F_D[0][i][j]+_F_U[0][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[0] + abs(lambda[1])*delta_w[1]*r_2[0] + abs(lambda[2])*delta_w[2]*r_3[0] + abs(lambda[3])*delta_w[3]*r_4[0]     );
+         
+         
+         
+         _F_eta[1][i][j]=0.5*(_F_D[1][i][j]+_F_U[1][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[1] + abs(lambda[1])*delta_w[1]*r_2[1] + abs(lambda[2])*delta_w[2]*r_3[1] + abs(lambda[3])*delta_w[3]*r_4[1]     );
+         
+         
+         
+         _F_eta[2][i][j]=0.5*(_F_D[2][i][j]+_F_U[2][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[2] + abs(lambda[1])*delta_w[1]*r_2[2] + abs(lambda[2])*delta_w[2]*r_3[2] + abs(lambda[3])*delta_w[3]*r_4[2]     );
+         
+         _F_eta[3][i][j]=0.5*(_F_D[3][i][j]+_F_U[3][i][j]) -0.5*(abs(lambda[0])*delta_w[0]*r_1[3] + abs(lambda[1])*delta_w[1]*r_2[3] + abs(lambda[2])*delta_w[2]*r_3[3]  + abs(lambda[3])*delta_w[3]*r_4[3]    );
+         
+         
+         
+         
     
     
 }

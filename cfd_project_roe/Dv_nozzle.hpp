@@ -17,7 +17,7 @@ class Dv_nozzle {
     
 private:
     
-    static int const _imax_f=21, _imax_c=20, _imin=0;
+    static int const _imax_f=11, _imax_c=10, _imin=0;
     int im_f, im_c;
     double A, B, C, D, E, F;  // just variables for calculations
     double k_2=0.2, k_4=0.02;
@@ -33,7 +33,7 @@ private:
     
     double delta_u,delta_v, delta_P, delta_rho;
     //variables for grid nodes and geometry terms
-    static int const  i_n_max=21, j_n_max=21, k_n_max=2;
+    static int const  i_n_max=11, j_n_max=11, k_n_max=2;
     double x_n[i_n_max][j_n_max];
     double y_n[i_n_max][j_n_max];
     
@@ -44,8 +44,8 @@ private:
     
     
     double delta_w[4];
-    double _F_L[4][_imax_f][_imax_f] , _F_R[4][_imax_f][_imax_f];
-    double _F_D[4][_imax_f][_imax_f] , _F_U[4][_imax_f][_imax_f];
+    double _F_L[4][_imax_f][_imax_f-1] , _F_R[4][_imax_f][_imax_f-1];
+    double _F_D[4][_imax_f-1][_imax_f] , _F_U[4][_imax_f-1][_imax_f];
     double avg_area;
     double avg_d_area;
     double x_c[_imax_c];
@@ -69,8 +69,8 @@ private:
     double ht[_imax_c][_imax_c];
     double _V[4][_imax_c][_imax_c];
     double _U[4][_imax_c][_imax_c];
-    double _F[4][_imax_f][_imax_f];
-    double _F_eta[4][_imax_f][_imax_f];
+    double _F[4][_imax_f][_imax_f-1];
+    double _F_eta[4][_imax_f-1][_imax_f];
     double _U_ghost_outflow[4][_imax_c];
     double _V_ghost_outflow[6][_imax_c];
     double _V_ghost_outflow_2[6][_imax_c];
@@ -180,7 +180,8 @@ public:
     double L2norm(int);
     void roe_flux();
     void roe_boundary_in_out(int,int);
-    void roe_boundary_in_out_F_kasi(int ,int);
+    void roe_boundary_F_kasi(int ,int);
+    void roe_boundary_F_eta(int ,int);
     void roe_boundary_walls(int);
     void mesh_nodes();
     // to calculate face area, cell volume (for the eigen values) and outpointing normals
