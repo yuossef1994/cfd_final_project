@@ -68,7 +68,7 @@ int main(int argc, const char * argv[]) {
     
     
     
-    int max_iter=581;
+    int max_iter=60000;
     double L2norm;
     
     Dv_nozzle nozzle;

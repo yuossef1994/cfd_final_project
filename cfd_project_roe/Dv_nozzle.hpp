@@ -17,7 +17,8 @@ class Dv_nozzle {
     
 private:
     
-    static int const _imax_f=11, _imax_c=10, _imin=0;
+    static int const _imax_f=41, _imax_c=40, _imin=0;
+    static int const  i_n_max=41, j_n_max=41, k_n_max=2;
     int im_f, im_c;
     double A, B, C, D, E, F;  // just variables for calculations
     double k_2=0.2, k_4=0.02;
@@ -33,7 +34,7 @@ private:
     
     double delta_u,delta_v, delta_P, delta_rho;
     //variables for grid nodes and geometry terms
-    static int const  i_n_max=11, j_n_max=11, k_n_max=2;
+    
     double x_n[i_n_max][j_n_max];
     double y_n[i_n_max][j_n_max];
     
